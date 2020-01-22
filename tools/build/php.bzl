@@ -2,7 +2,6 @@
 
 load(
     "@io_bazel_rules_docker//lang:image.bzl",
-    "dep_layer",
     "app_layer",
 )
 
@@ -131,12 +130,9 @@ def php_image(name, base=None, deps=[], layers=[], **kwargs):
 
   php_binary(name=binary_name, deps=deps + layers, **kwargs)
 
-  index = 0
   base = base or DEFAULT_BASE
-  for dep in layers:
-    this_name = "%s.%d" % (name, index)
-    dep_layer(name=this_name, base=base, dep=dep)
-    base = this_name
-    index += 1
+  for index, dep in enumerate(layers):
+    base = app_layer(name = "%s.%d" % (name, index), base = base, dep = dep)
+    base = app_layer(name = "%s.%d-symlinks" % (name, index), base = base, dep = dep, binary = binary_name)
 
   app_layer(name=name, base=base, binary=binary_name, layers=layers)
